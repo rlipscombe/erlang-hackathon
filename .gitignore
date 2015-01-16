@@ -1,5 +1,4 @@
 .rebar
 ebin
-hack
 tmp/
 priv/templates.zip
