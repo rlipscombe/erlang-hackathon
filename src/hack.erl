@@ -1,8 +1,8 @@
 -module(hack).
 -export([main/1]).
 
--define(PREFIX, "priv/templates/").
--define(PREFIX_LEN, 15).
+-define(PREFIX, "templates/").
+-define(PREFIX_LEN, 10).
 
 main([]) ->
     io:format("Usage:\n"),
@@ -10,10 +10,12 @@ main([]) ->
     io:format("\n"),
     erlang:halt(1);
 
-main([_Project]) ->
-    {ok, Zs} = hack_zip:ls(),
+main([Project]) ->
+    {ok, Zip} = hack_zip:read_file("priv/templates.zip"),
+    {ok, Zs} = zip:list_dir(Zip),
     Templates = lists:filtermap(fun is_template/1, Zs),
-    lists:foreach(fun extract_template/1, Templates),
+    lists:foreach(fun({FullPath, Info}) -> extract_template(string:to_lower(Project), Zip, FullPath, Info) end, Templates),
+    file:change_mode("rebar", list_to_integer("0777", 8)),
     ok.
 
 is_template({zip_file, Path, Info, _, _, _}) ->
@@ -26,24 +28,26 @@ is_template(?PREFIX, Path, Info) ->
 is_template(_, _Path, _Info) ->
     false.
 
-extract_template({FullPath, Info}) when element(3, Info) =:= directory ->
+extract_template(_Project, _Zip, FullPath, Info) when element(3, Info) =:= directory ->
     Path = get_dest_path(FullPath),
     make_template_dir(Path),
     ok;
-extract_template({FullPath, _Info}) ->
+extract_template(Project, Zip, FullPath, Info) ->
     Path = get_dest_path(FullPath),
-    {ok, Content} = hack_zip:read_file(FullPath),
-    write_template_file(Path, Content),
+    write_template_file(Project, Path, Info, zip:extract(Zip, [{file_list, [FullPath]}, memory])),
     ok.
 
 make_template_dir("") ->
     ok;
 make_template_dir(Path) ->
-    io:format("mkdir ~p\n", [Path]).
+    io:format("mkdir ~p\n", [Path]),
+    file:make_dir(Path).
 
-write_template_file(Path, Content) ->
-    io:format("write ~p\n", [Path]),
-    file:write_file(Path, Content).
+write_template_file(Project, Path, _Info, {ok, [{_Name, Content}]}) ->
+    DestPath = re:replace(Path, "myproject", Project, [{return, list}]),
+    io:format("write ~p\n", [DestPath]),
+    DestContent = binary:replace(Content, <<"myproject">>, list_to_binary(Project), [global]),
+    ok = file:write_file(DestPath, DestContent).
 
 get_dest_path(FullPath) ->
     lists:sublist(FullPath, ?PREFIX_LEN + 1, length(FullPath)).

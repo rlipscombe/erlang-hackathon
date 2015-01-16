@@ -3,7 +3,9 @@ REBAR ?= ./rebar
 NAME ?= hack
 
 all:
-	$(REBAR) get-deps compile escriptize
+	$(REBAR) get-deps compile
+	zip -r priv/templates.zip templates
+	$(REBAR) escriptize
 
 clean:
 	$(REBAR) clean
