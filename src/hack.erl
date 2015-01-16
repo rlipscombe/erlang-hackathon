@@ -32,7 +32,7 @@ extract_template({FullPath, Info}) when element(3, Info) =:= directory ->
     ok;
 extract_template({FullPath, _Info}) ->
     Path = get_dest_path(FullPath),
-    Content = hack_zip:read_file(FullPath),
+    {ok, Content} = hack_zip:read_file(FullPath),
     write_template_file(Path, Content),
     ok.
 
@@ -42,7 +42,8 @@ make_template_dir(Path) ->
     io:format("mkdir ~p\n", [Path]).
 
 write_template_file(Path, Content) ->
-    io:format("write ~p : ~p\n", [Path, Content]).
+    io:format("write ~p\n", [Path]),
+    file:write_file(Path, Content).
 
 get_dest_path(FullPath) ->
     lists:sublist(FullPath, ?PREFIX_LEN + 1, length(FullPath)).
