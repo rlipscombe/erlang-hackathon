@@ -4,6 +4,7 @@ NAME ?= hack
 
 all:
 	$(REBAR) get-deps compile
+	-rm priv/templates.zip
 	zip -r priv/templates.zip templates
 	$(REBAR) escriptize
 
