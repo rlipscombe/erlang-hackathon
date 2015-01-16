@@ -1,14 +1,9 @@
 # erlang-hackathon
 
-## Create a basic app
+This repository contains the source files for the hackathon bootstrapper.
+Download a built version from **TODO**, and run it as follows:
 
-    ./bootstrap foo
+    ./hack foo
 
-## Compile (and package it)
-
-    make
-
-## Run it
-
-    _rel/foo_release/bin/foo_release console
+...where 'foo' is the name of your project.
 
