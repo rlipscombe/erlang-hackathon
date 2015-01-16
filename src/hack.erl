@@ -15,7 +15,7 @@ main([Project]) ->
     {ok, Zs} = zip:list_dir(Zip),
     Templates = lists:filtermap(fun is_template/1, Zs),
     lists:foreach(fun({FullPath, Info}) -> extract_template(string:to_lower(Project), Zip, FullPath, Info) end, Templates),
-    file:change_mode("rebar", list_to_integer("0777", 8)),
+    file:change_mode("rebar", 8#0777),
     ok.
 
 is_template({zip_file, Path, Info, _, _, _}) ->
